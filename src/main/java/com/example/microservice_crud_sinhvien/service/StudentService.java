@@ -4,6 +4,7 @@ import com.example.microservice_crud_sinhvien.VO.Department;
 import com.example.microservice_crud_sinhvien.VO.ResponseTemplateVO;
 import com.example.microservice_crud_sinhvien.entity.Student;
 import com.example.microservice_crud_sinhvien.repository.StudentRepository;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ public class StudentService {
         return studentRepository.save(student);
     }
 
-    @RateLimiter(name = "basic")
+    @RateLimiter(name = "basic",fallbackMethod = "HandleFallBack")
     public ResponseTemplateVO getStudentWithDepartment(Long studentId) {
         ResponseTemplateVO vo = new ResponseTemplateVO();
         Student student= studentRepository.findById(studentId).get();
@@ -31,6 +32,11 @@ public class StudentService {
                         + student.getDepartmentId(),Department.class);
         vo.setDepartment(department);
         return vo;
+    }
+
+    private ResponseTemplateVO HandleFallBack(Long studentId, RequestNotPermitted rnp) {
+
+        return new ResponseTemplateVO();
     }
 
 
